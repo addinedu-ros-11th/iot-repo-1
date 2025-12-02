@@ -1,4 +1,5 @@
-confluence link : https://netoda.atlassian.net/wiki/spaces/wb/pages/17563649
+confluence link : https://netoda.atlassian.net/wiki/spaces/wb/overview?homepageId=12845339
+jira link : https://netoda.atlassian.net/jira/software/projects/WB/boards/34?atlOrigin=eyJpIjoiNjhmMmYzNmFlN2UwNDA1Zjk0NTgxMjExYzhkZGNmZDMiLCJwIjoiaiJ9
 
 # Team 1_IOTProject_World Best Bartender
 
