@@ -1,0 +1,23 @@
+Table cocktails {
+  cocktail_id int [pk, increment]
+  name varchar(50) [not null]
+  price int [default: 5000]
+  description varchar(255)
+}
+
+Table recipes {
+  recipe_id int [pk, increment]
+  cocktail_id int [ref: > cocktails.cocktail_id]
+  ingredient_name varchar(50)
+  pump_pin int [not null]
+  amount_ml int [not null]
+}
+
+Table users {
+  user_id int [pk, increment]
+  rfid_uid varchar(50) [unique, not null]
+  user_name varchar(50) [not null]
+  birth_date date [not null]
+  point_balance int [default: 0]
+  role tinyint [default: 0]
+}
