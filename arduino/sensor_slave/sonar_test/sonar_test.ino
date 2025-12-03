@@ -1,5 +1,10 @@
 #include <Arduino.h>
 
+const int sensorPin = A0;  
+int threshold = 50; 
+
+int cupOn = 0;
+
 const int trigPins[] = {3, 5, 7, 9, 11, 13};
 const int echoPins[] = {2, 4, 6, 8, 10, 12};
 const int numSensors = 6;
@@ -16,7 +21,9 @@ void setup() {
   }
 }
 
-void loop() {
+void loop() 
+{
+  int rawValue = analogRead(sensorPin);
   int percentValues[numSensors];
 
   for (int i = 0; i < numSensors; i++) {
@@ -55,14 +62,34 @@ void loop() {
     delay(10);
   }
 
+  if (rawValue > threshold) 
+  {
+   cupOn = 1; 
+  }
+
   // 5. 시리얼 모니터에 출력
   for (int i = 0; i < numSensors; i++) {
     Serial.print(percentValues[i]);
     if (i < numSensors - 1) {
       Serial.print(" ");
     }
+
+
   }
-  Serial.println();
+  
+
+  Serial.print(" ");
+  // if (rawValue > threshold) {
+  //   //digitalWrite(ledPin, HIGH); // 아두이노 LED 켜기 (확인용)
+  //   Serial.print("1");        // 파이썬으로 "1" (True) 전송
+  // } 
+  // else {
+  //   //digitalWrite(ledPin, LOW);  // 아두이노 LED 끄기
+  //   Serial.print("0");        // 파이썬으로 "0" (False) 전송
+  // }
+  
+  
+  Serial.println(rawValue);
 
   // 0.1초 대기 후 재측정
   delay(100);

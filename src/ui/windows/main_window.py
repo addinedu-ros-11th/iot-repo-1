@@ -25,6 +25,9 @@ class MainWindow(QDialog):
         ui_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'cocktail_GUI.ui'))
         uic.loadUi(ui_path, self)
 
+        # 칵테일 메뉴 로드
+        self.load_cocktail_menu()
+
         # 탭 위젯 설정
         self.tabWidget = self.findChild(object, 'tabWidget')
         self.previous_tab_index = 0
@@ -55,10 +58,10 @@ class MainWindow(QDialog):
             bar.setValue(0)
 
         # Serial Thread Configuration
-        self.port_sonar = '/dev/ttyUSB0' # Make sure this matches your setup
-        self.thread_sonar = SerialThread(self.port_sonar)
-        self.thread_sonar.progress_update.connect(self.update_progress)
-        self.thread_sonar.start()
+        self.port_sensor = '/dev/ttyUSB0' # Make sure this matches your setup
+        self.thread_sensor = SerialThread(self.port_sensor)
+        self.thread_sensor.progress_update.connect(self.update_progress)
+        self.thread_sensor.start()
 
 
         # self.port_pump = '/dev/ttyUSB1' # Make sure this matches your setup
@@ -116,6 +119,25 @@ class MainWindow(QDialog):
             # 다른 탭으로 이동하는 경우 현재 인덱스 업데이트
             self.previous_tab_index = index
 
+    def load_cocktail_menu(self):
+        """데이터베이스에서 칵테일 메뉴를 불러와 UI를 업데이트함."""
+        query = "SELECT name, price FROM cocktails LIMIT 5"
+        result = self.db_manager.fetch_query(query)
+
+        if result:
+            for i, row in enumerate(result):
+                # 라벨 위젯 찾기 (cocktail01 ~ cocktail05, price01 ~ price05)
+                name_label = self.findChild(QLabel, f"cocktail{i+1:02d}")
+                price_label = self.findChild(QLabel, f"price{i+1:02d}")
+
+                if name_label:
+                    name_label.setText(str(row['name']))
+                
+                if price_label:
+                    price_label.setText(f"{row['price']}원")
+        else:
+            print("칵테일 메뉴를 불러오지 못했습니다.")
+
     def update_progress(self, values):
         # 각 프로그레스 바를 업데이트함
         for i, value in enumerate(values):
@@ -132,6 +154,9 @@ class MainWindow(QDialog):
                     else:
                         label.setText("")
                         label.setStyleSheet("")
+
+
+       
 
     def closeEvent(self, event):
         self.thread.stop()

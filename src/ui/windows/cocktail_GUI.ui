@@ -39,7 +39,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>PushButton</string>
+      <string>Click to Order</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_2">
@@ -52,7 +52,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>PushButton</string>
+      <string>Click to Order</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton">
@@ -65,7 +65,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>PushButton</string>
+      <string>Click to Order</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_4">
@@ -78,7 +78,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>PushButton</string>
+      <string>Click to Order</string>
      </property>
     </widget>
     <widget class="QLabel" name="Menulabel">
@@ -111,7 +111,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>PushButton</string>
+      <string>Click to Order</string>
      </property>
     </widget>
     <widget class="QLabel" name="cocktail01">
@@ -276,7 +276,7 @@
       <string>price</string>
      </property>
     </widget>
-    <widget class="QLabel" name="cocktail05_3">
+    <widget class="QLabel" name="price05">
      <property name="geometry">
       <rect>
        <x>70</x>
@@ -359,7 +359,7 @@
      <property name="geometry">
       <rect>
        <x>230</x>
-       <y>300</y>
+       <y>270</y>
        <width>121</width>
        <height>131</height>
       </rect>
@@ -403,7 +403,7 @@
        <x>230</x>
        <y>50</y>
        <width>381</width>
-       <height>231</height>
+       <height>171</height>
       </rect>
      </property>
     </widget>
@@ -411,7 +411,7 @@
      <property name="geometry">
       <rect>
        <x>360</x>
-       <y>300</y>
+       <y>270</y>
        <width>121</width>
        <height>131</height>
       </rect>
@@ -427,7 +427,7 @@
      <property name="geometry">
       <rect>
        <x>490</x>
-       <y>300</y>
+       <y>270</y>
        <width>121</width>
        <height>131</height>
       </rect>
@@ -491,7 +491,7 @@
      <property name="geometry">
       <rect>
        <x>260</x>
-       <y>440</y>
+       <y>410</y>
        <width>66</width>
        <height>19</height>
       </rect>
@@ -504,7 +504,7 @@
      <property name="geometry">
       <rect>
        <x>390</x>
-       <y>440</y>
+       <y>410</y>
        <width>66</width>
        <height>19</height>
       </rect>
@@ -517,7 +517,7 @@
      <property name="geometry">
       <rect>
        <x>520</x>
-       <y>440</y>
+       <y>410</y>
        <width>66</width>
        <height>19</height>
       </rect>
@@ -581,6 +581,84 @@
      </property>
      <property name="text">
       <string>고객 정보</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="tank_1_warn">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>240</y>
+       <width>66</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="tank_2_warn">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>240</y>
+       <width>66</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="tank_3_warn">
+     <property name="geometry">
+      <rect>
+       <x>520</x>
+       <y>240</y>
+       <width>66</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="tank_5_warn">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>440</y>
+       <width>66</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="tank_4_warn">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>440</y>
+       <width>66</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="tank_6_warn">
+     <property name="geometry">
+      <rect>
+       <x>520</x>
+       <y>440</y>
+       <width>66</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
      </property>
     </widget>
    </widget>
