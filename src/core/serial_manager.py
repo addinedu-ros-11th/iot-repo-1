@@ -19,9 +19,9 @@ class SerialThread(QThread):
             line = self.reader.read_line()
             if line:
                 try:
-                    # Split the line by whitespace
+                    # 공백으로 라인을 분리함
                     parts = line.split()
-                    # We expect 6 values
+                    # 6개의 값을 예상함
                     if len(parts) == 6:
                         values = []
                         for i in range(6):
