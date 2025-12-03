@@ -7,7 +7,7 @@ src_dir = os.path.abspath(os.path.join(current_dir, '../../'))
 if src_dir not in sys.path:
     sys.path.append(src_dir)
 
-from PyQt6.QtWidgets import QDialog, QApplication, QListView, QInputDialog, QLineEdit, QMessageBox, QLabel
+from PyQt6.QtWidgets import QDialog, QApplication, QListView, QInputDialog, QLineEdit, QMessageBox, QLabel, QPushButton
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6 import uic
 from core.serial_manager import SerialThread
@@ -27,6 +27,9 @@ class MainWindow(QDialog):
 
         # 칵테일 메뉴 로드
         self.load_cocktail_menu()
+        
+        # 원료 라벨 로드
+        self.load_ingredient_labels()
 
         # 탭 위젯 설정
         self.tabWidget = self.findChild(object, 'tabWidget')
@@ -56,6 +59,22 @@ class MainWindow(QDialog):
         for bar in self.progress_bars:
             bar.setRange(0, 100)
             bar.setValue(0)
+
+        # 주문 버튼 연결
+        self.order_buttons = [
+            self.findChild(QPushButton, 'pushButton'),
+            self.findChild(QPushButton, 'pushButton_2'),
+            self.findChild(QPushButton, 'pushButton_3'),
+            self.findChild(QPushButton, 'pushButton_4'),
+            self.findChild(QPushButton, 'pushButton_5')
+        ]
+        
+        for i, btn in enumerate(self.order_buttons):
+            if btn:
+                btn.clicked.connect(lambda checked, idx=i: self.select_cocktail(idx))
+
+        self.selected_cocktail_label = self.findChild(QLabel, "label_3")
+        self.selected_price_label = self.findChild(QLabel, "label_4")
 
         # Serial Thread Configuration
         self.port_sensor = '/dev/ttyUSB0' # Make sure this matches your setup
@@ -138,6 +157,56 @@ class MainWindow(QDialog):
         else:
             print("칵테일 메뉴를 불러오지 못했습니다.")
 
+    def load_ingredient_labels(self):
+        """데이터베이스에서 원료 정보를 불러와 컵 라벨을 업데이트함."""
+        # 펌프 핀(2~7)에 해당하는 원료 이름을 가져옴
+        # DISTINCT를 사용하여 중복 제거 (같은 핀에 같은 재료가 여러 레시피에 쓰일 수 있음)
+        query = "SELECT DISTINCT pump_pin, ingredient_name FROM recipes WHERE pump_pin BETWEEN 2 AND 7"
+        result = self.db_manager.fetch_query(query)
+
+        # 라벨 매핑 (펌프 핀 -> UI 위젯 이름)
+        # Pump 2 -> cup1
+        # Pump 3 -> cup2
+        # Pump 4 -> cup3
+        # Pump 5 -> cup4
+        # Pump 6 -> cup5
+        # Pump 7 -> cup6
+        pin_to_label = {
+            2: 'cup1',
+            3: 'cup2',
+            4: 'cup3',
+            5: 'cup4',
+            6: 'cup5',
+            7: 'cup6'
+        }
+
+        if result:
+            for row in result:
+                pin = row['pump_pin']
+                name = row['ingredient_name']
+                
+                if pin in pin_to_label:
+                    label_name = pin_to_label[pin]
+                    label = self.findChild(QLabel, label_name)
+                    if label:
+                        label.setText(name)
+        else:
+            print("원료 정보를 불러오지 못했습니다.")
+
+    def select_cocktail(self, index):
+        """주문 버튼 클릭 시 선택된 칵테일 정보를 업데이트함."""
+        # 칵테일 이름과 가격 라벨 찾기
+        name_label = self.findChild(QLabel, f"cocktail{index+1:02d}")
+        price_label = self.findChild(QLabel, f"price{index+1:02d}")
+
+        if name_label and self.selected_cocktail_label:
+            self.selected_cocktail_label.setText(name_label.text())
+        
+        if price_label and self.selected_price_label:
+            # "5000원" 형식에서 숫자만 추출하거나 그대로 사용
+            # 요구사항: "클릭한 버튼의 해당되는 가격으로 변할 수 있게"
+            self.selected_price_label.setText(price_label.text())
+
     def update_progress(self, values):
         # 각 프로그레스 바를 업데이트함
         for i, value in enumerate(values):
@@ -159,7 +228,11 @@ class MainWindow(QDialog):
        
 
     def closeEvent(self, event):
-        self.thread.stop()
+        if hasattr(self, 'thread_sensor'):
+            self.thread_sensor.stop()
+        if hasattr(self, 'thread_RFID'):
+            self.thread_RFID.stop()
+        self.db_manager.disconnect()
         event.accept()
 
 if __name__ == "__main__":

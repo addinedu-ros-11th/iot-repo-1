@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="customerTab">
     <attribute name="title">
@@ -490,79 +490,17 @@
     <widget class="QLabel" name="cup1">
      <property name="geometry">
       <rect>
-       <x>260</x>
+       <x>240</x>
        <y>410</y>
-       <width>66</width>
+       <width>111</width>
        <height>19</height>
       </rect>
      </property>
      <property name="text">
       <string>TextLabel</string>
      </property>
-    </widget>
-    <widget class="QLabel" name="cup2">
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>410</y>
-       <width>66</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="cup2_2">
-     <property name="geometry">
-      <rect>
-       <x>520</x>
-       <y>410</y>
-       <width>66</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="cup2_3">
-     <property name="geometry">
-      <rect>
-       <x>520</x>
-       <y>610</y>
-       <width>66</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="cup2_4">
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>610</y>
-       <width>66</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="cup1_2">
-     <property name="geometry">
-      <rect>
-       <x>260</x>
-       <y>610</y>
-       <width>66</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
     <widget class="QLabel" name="label">
@@ -659,6 +597,86 @@
      </property>
      <property name="text">
       <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="cup2">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>410</y>
+       <width>111</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="cup3">
+     <property name="geometry">
+      <rect>
+       <x>500</x>
+       <y>410</y>
+       <width>111</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="cup6">
+     <property name="geometry">
+      <rect>
+       <x>500</x>
+       <y>610</y>
+       <width>111</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="cup5">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>610</y>
+       <width>111</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="cup4">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>610</y>
+       <width>111</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </widget>
