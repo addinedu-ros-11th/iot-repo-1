@@ -28,7 +28,7 @@ class SerialManager(QThread):
             self.ser.dtr = True
             time.sleep(2) # 부팅 완료 대기 (2초)
             
-            # [🔥 핵심 수정] 연결 직후 쌓여있는 쓰레기 데이터 싹 비우기
+           #보드안에 남은 데이터 정리 
             self.ser.reset_input_buffer()
             self.ser.reset_output_buffer()
             
