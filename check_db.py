@@ -9,7 +9,7 @@ def check_schema():
             database="wbb"
         )
         cursor = conn.cursor()
-        cursor.execute("DESCRIBE recipes")
+        cursor.execute("DESCRIBE cocktails")
         for x in cursor:
             print(x)
         conn.close()

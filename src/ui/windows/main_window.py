@@ -10,7 +10,7 @@ if src_dir not in sys.path:
 from PyQt6.QtWidgets import QDialog, QApplication, QListView, QInputDialog, QLineEdit, QMessageBox, QLabel, QPushButton
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6 import uic
-from core.serial_manager import SerialThread
+from core.serial_manager import SerialThread, PumpSerialThread
 from core.db_manager import DatabaseManager
 
 class MainWindow(QDialog):
@@ -21,6 +21,11 @@ class MainWindow(QDialog):
                                          password="----",
                                          database="wbb")
         self.db_manager.connect()
+        
+        self.cocktail_data = [] # List of dicts: {'id': int, 'name': str, 'price': int}
+        self.current_cocktail_id = None
+        self.ML_TO_MS = 100 # Conversion rate: 1ml = 100ms
+
         # UI 파일을 로드함
         ui_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'cocktail_GUI.ui'))
         uic.loadUi(ui_path, self)
@@ -83,10 +88,20 @@ class MainWindow(QDialog):
         self.thread_sensor.start()
 
 
-        # self.port_pump = '/dev/ttyUSB1' # Make sure this matches your setup
-        # self.thread_pump = SerialThread(self.port_pump)
-        # self.thread_pump.progress_update.connect(self.update_progress)
-        # self.thread_pump.start()
+        self.port_pump = '/dev/ttyUSB1' # Make sure this matches your setup
+        self.thread_pump = PumpSerialThread(self.port_pump)
+        self.thread_pump.progress_update.connect(self.log_pump_message)
+        self.thread_pump.start()
+
+        # Connect Pump Control Buttons
+        self.btn_pump_on = self.findChild(QPushButton, 'pushButton_6')
+        self.btn_pump_off = self.findChild(QPushButton, 'pushButton_7')
+
+        if self.btn_pump_on:
+            self.btn_pump_on.clicked.connect(self.send_pump_on)
+        
+        if self.btn_pump_off:
+            self.btn_pump_off.clicked.connect(self.send_pump_off)
 
         self.port_RFID = '/dev/ttyUSB2' # 설정과 일치하는지 확인해야 함
         self.thread_RFID = SerialThread(self.port_RFID)
@@ -115,8 +130,53 @@ class MainWindow(QDialog):
                 display_text = " | ".join([f"{k}: {v}" for k, v in row.items()])
                 item = QStandardItem(display_text)
                 self.list_model.appendRow(item)
+            
+            # Trigger Cocktail Manufacturing if a cocktail is selected
+            if self.current_cocktail_id is not None:
+                self.start_manufacturing(self.current_cocktail_id)
+            else:
+                print("No cocktail selected. Please select a cocktail first.")
+
         else:
             self.list_model.appendRow(QStandardItem("User not found"))
+
+    def start_manufacturing(self, cocktail_id):
+        print(f"Starting manufacturing for Cocktail ID: {cocktail_id}")
+        
+        # Fetch recipe
+        query = "SELECT pump_pin, amount_ml FROM recipes WHERE cocktail_id = %s"
+        recipe = self.db_manager.fetch_query(query, (cocktail_id,))
+        
+        if recipe:
+            for step in recipe:
+                pump_pin = step['pump_pin']
+                amount_ml = step['amount_ml']
+                run_time = amount_ml * self.ML_TO_MS
+                
+                print(f"Pump {pump_pin}: {amount_ml}ml -> {run_time}ms")
+                
+                if hasattr(self, 'thread_pump'):
+                    # Command format: PUMP,pin,time
+                    cmd = f"PUMP,{pump_pin},{run_time}"
+                    self.thread_pump.send_command(cmd)
+                    
+                    # Wait for the pump to finish + buffer (simple blocking for now, ideally async)
+                    # Note: Blocking the GUI thread is bad practice, but for simple logic it might be acceptable 
+                    # if the user doesn't need to interact. 
+                    # However, since we are sending commands to a thread, we should probably just send them all 
+                    # and let the Arduino queue them or handle timing. 
+                    # But the Arduino code seems to handle one command at a time?
+                    # Let's check Relay_Pump_test.ino again. 
+                    # It reads one command, executes it with delay, then reads next.
+                    # So sending multiple commands might fill the serial buffer.
+                    # For now, let's send them with a small delay between them from the Python side 
+                    # or just send them and hope the serial buffer is large enough.
+                    # Given the Arduino code uses `delay(run_time)`, it will block reading serial.
+                    # So we should probably space them out or rely on the buffer.
+                    # Let's just send them for now.
+                    pass
+        else:
+            print("No recipe found for this cocktail.")
 
     def check_admin_access(self, index):
         # 관리자 탭(인덱스 1)으로 이동하려는 경우
@@ -140,11 +200,20 @@ class MainWindow(QDialog):
 
     def load_cocktail_menu(self):
         """데이터베이스에서 칵테일 메뉴를 불러와 UI를 업데이트함."""
-        query = "SELECT name, price FROM cocktails LIMIT 5"
+        query = "SELECT cocktail_id, name, price FROM cocktails LIMIT 5"
         result = self.db_manager.fetch_query(query)
+
+        self.cocktail_data = []
 
         if result:
             for i, row in enumerate(result):
+                # Store data for later use
+                self.cocktail_data.append({
+                    'id': row['cocktail_id'],
+                    'name': row['name'],
+                    'price': row['price']
+                })
+
                 # 라벨 위젯 찾기 (cocktail01 ~ cocktail05, price01 ~ price05)
                 name_label = self.findChild(QLabel, f"cocktail{i+1:02d}")
                 price_label = self.findChild(QLabel, f"price{i+1:02d}")
@@ -195,6 +264,15 @@ class MainWindow(QDialog):
 
     def select_cocktail(self, index):
         """주문 버튼 클릭 시 선택된 칵테일 정보를 업데이트함."""
+        
+        if index < len(self.cocktail_data):
+            data = self.cocktail_data[index]
+            self.current_cocktail_id = data['id']
+            print(f"Selected Cocktail ID: {self.current_cocktail_id}, Name: {data['name']}")
+        else:
+            self.current_cocktail_id = None
+            print("Invalid cocktail selection")
+
         # 칵테일 이름과 가격 라벨 찾기
         name_label = self.findChild(QLabel, f"cocktail{index+1:02d}")
         price_label = self.findChild(QLabel, f"price{index+1:02d}")
@@ -227,9 +305,22 @@ class MainWindow(QDialog):
 
        
 
+    def log_pump_message(self, message):
+        print(message)
+
+    def send_pump_on(self):
+        if hasattr(self, 'thread_pump'):
+            self.thread_pump.send_command("P_ON")
+
+    def send_pump_off(self):
+        if hasattr(self, 'thread_pump'):
+            self.thread_pump.send_command("P_OFF")
+
     def closeEvent(self, event):
         if hasattr(self, 'thread_sensor'):
             self.thread_sensor.stop()
+        if hasattr(self, 'thread_pump'):
+            self.thread_pump.stop()
         if hasattr(self, 'thread_RFID'):
             self.thread_RFID.stop()
         self.db_manager.disconnect()

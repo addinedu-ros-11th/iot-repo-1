@@ -37,3 +37,32 @@ class SerialThread(QThread):
     def stop(self):
         self.running = False
         self.wait()
+
+class PumpSerialThread(QThread):
+    progress_update = pyqtSignal(str) # Log messages
+
+    def __init__(self, port, baudrate=9600):
+        super().__init__()
+        self.port = port
+        self.baudrate = baudrate
+        self.running = True
+        self.reader = None
+
+    def run(self):
+        self.reader = SerialReader(self.port, self.baudrate)
+        
+        while self.running:
+            line = self.reader.read_line()
+            if line:
+                self.progress_update.emit(f"[PUMP] {line}")
+            time.sleep(0.01)
+
+        self.reader.close()
+
+    def send_command(self, command):
+        if self.reader:
+            self.reader.write(command + '\n')
+
+    def stop(self):
+        self.running = False
+        self.wait()

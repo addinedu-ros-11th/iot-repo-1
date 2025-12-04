@@ -32,6 +32,19 @@ class SerialReader:
                 print(f"Error reading from serial: {e}")
         return None
 
+    def write(self, data):
+        """
+        Writes data to the serial port.
+        """
+        if self.ser and self.ser.is_open:
+            try:
+                if isinstance(data, str):
+                    data = data.encode('utf-8')
+                self.ser.write(data)
+                print(f"Sent: {data}")
+            except Exception as e:
+                print(f"Error writing to serial: {e}")
+
     def close(self):
         if self.ser and self.ser.is_open:
             self.ser.close()
