@@ -1,4 +1,4 @@
-const int EN_PIN = 11;        // 속도 조절
+const int EN_PIN = 11;                  // 속도 조절
 
 const int MD1_IN1_PIN = 2;
 const int MD1_IN2_PIN = 3;
@@ -24,8 +24,6 @@ bool relayToggle = false;
 bool lastButton1State = HIGH;
 int pressCount = 0;
 bool lastButton2State = HIGH;
-
-
 
 void setup()
 {
@@ -61,8 +59,6 @@ void setup()
   Serial.println("SYSTEM READY");
 }
 
-
-
 void loop()
 {
   // 버튼 (A4) 전원 토글
@@ -87,8 +83,6 @@ void loop()
     delay(200);
   }
   lastButton1State = currentButton1;
-
-
 
   // 버튼 (A5) 부저/비상정지
   bool currentButton2 = digitalRead(PUSH_BUTTON_2);
@@ -123,7 +117,6 @@ void loop()
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
 
-
     // 전원 
     if (cmd == "P_ON")
     {
@@ -145,7 +138,6 @@ void loop()
       Serial.println("POWER OFF");
     }
 
-
     // 부저
     else if (cmd == "BZ_ON")
     {
@@ -164,7 +156,6 @@ void loop()
       digitalWrite(BZ_PIN, LOW);
       Serial.println("BUZZER OFF");
     }
-
 
     // 펌프 (P1 ~ P6)
     else if (cmd.startsWith("P") && cmd.length() == 2)
@@ -187,14 +178,41 @@ void loop()
         }
       }
     }
+    else if (cmd.startsWith("PUMP"))
+    {
+      // 예: "PUMP,2,2000"
+      int c1 = cmd.indexOf(',');
+      int c2 = cmd.indexOf(',', c1 + 1);
+
+      int pump_num = cmd.substring(c1 + 1, c2).toInt();
+      int run_time = cmd.substring(c2 + 1).toInt();
+
+      if (!relayToggle)
+      {
+        Serial.println("PUMP BLOCKED (POWER OFF)");
+      }
+      else if (digitalRead(BZ_PIN) == HIGH)
+      {
+        Serial.println("PUMP BLOCKED (BUZZER ON)");
+      }
+      else
+      {
+        runPumpTime(pump_num, run_time);
+      }
+    }
   }
 }
 
-// 펌프
 void runPump(int num)
 {
+  runPumpTime(num, 3000);   // 기본 3초
+}
+
+// 펌프
+void runPumpTime(int num, int run_time)
+{
   stopAll();
-  analogWrite(EN_PIN, 150);
+  analogWrite(EN_PIN, 150);  // 속도 설정
 
   switch (num) {
     case 1: digitalWrite(MD1_IN1_PIN, HIGH); digitalWrite(MD1_IN2_PIN, LOW); break;
@@ -203,12 +221,16 @@ void runPump(int num)
     case 4: digitalWrite(MD2_IN3_PIN, HIGH); digitalWrite(MD2_IN4_PIN, LOW); break;
     case 5: digitalWrite(MD3_IN1_PIN, HIGH); digitalWrite(MD3_IN2_PIN, LOW); break;
     case 6: digitalWrite(MD3_IN3_PIN, HIGH); digitalWrite(MD3_IN4_PIN, LOW); break;
+    default: return;
   }
 
+  Serial.print("PUMP RUN ");
   Serial.print(num);
-  Serial.println("번 펌프 동작");
+  Serial.print(" for ");
+  Serial.print(run_time);
+  Serial.println("ms");
 
-  delay(3000);  // 추후 millis() 방식으로 변경 예정
+  delay(run_time);  
   stopAll();
 }
 
