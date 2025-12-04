@@ -10,6 +10,9 @@
     <height>753</height>
    </rect>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::NoFocus</enum>
+  </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
@@ -22,8 +25,11 @@
      <height>691</height>
     </rect>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::ClickFocus</enum>
+   </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="customerTab">
     <attribute name="title">
@@ -93,7 +99,6 @@
      <property name="font">
       <font>
        <pointsize>27</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -324,7 +329,6 @@
      <property name="font">
       <font>
        <pointsize>20</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -337,7 +341,7 @@
       <rect>
        <x>70</x>
        <y>560</y>
-       <width>461</width>
+       <width>341</width>
        <height>41</height>
       </rect>
      </property>
@@ -680,6 +684,24 @@
      </property>
     </widget>
    </widget>
+  </widget>
+  <widget class="QLabel" name="status">
+   <property name="geometry">
+    <rect>
+     <x>590</x>
+     <y>30</y>
+     <width>101</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>17</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
   </widget>
  </widget>
  <resources/>

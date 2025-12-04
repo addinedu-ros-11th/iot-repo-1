@@ -1,7 +1,0 @@
-#!/Users/sungminhong/Documents/dev_ws/iot_project/iot-repo-1/venv/iot_project/bin/python3
-import sys
-from PyQt6.uic.pyuic import main
-if __name__ == '__main__':
-    if sys.argv[0].endswith('.exe'):
-        sys.argv[0] = sys.argv[0][:-4]
-    sys.exit(main())

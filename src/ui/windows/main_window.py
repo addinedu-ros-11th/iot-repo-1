@@ -11,15 +11,20 @@ from PyQt6.QtWidgets import QDialog, QApplication, QListView, QInputDialog, QLin
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6 import uic
 from core.serial_manager import SerialThread
-from core.db_manager import DatabaseManager
+from core.rfid_manager import RfidThread
+from core.cocktaildb import DatabaseManager
 
 class MainWindow(QDialog):
+    # State Constants
+    STATE_IDLE = "대기 중"
+    STATE_WAITING_TAG = "태그 대기"
+    STATE_PAYMENT_WAIT = "결제 대기"
+    STATE_MAKING = "제조 중"
+    STATE_DONE = "제조 완료"
+
     def __init__(self):
         super().__init__()
-        self.db_manager = DatabaseManager(host="wbb.c70a028eoyhm.ap-northeast-2.rds.amazonaws.com",
-                                         user="sm",
-                                         password="123",
-                                         database="wbb")
+        self.db_manager = DatabaseManager()
         self.db_manager.connect()
         # UI 파일을 로드함
         ui_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'cocktail_GUI.ui'))
@@ -77,10 +82,11 @@ class MainWindow(QDialog):
         self.selected_price_label = self.findChild(QLabel, "label_4")
 
         # Serial Thread Configuration
-        self.port_sensor = '/dev/ttyUSB0' # Make sure this matches your setup
-        self.thread_sensor = SerialThread(self.port_sensor)
-        self.thread_sensor.progress_update.connect(self.update_progress)
-        self.thread_sensor.start()
+        # Serial Thread Configuration
+        # self.port_sensor = '/dev/ttyUSB0' # Make sure this matches your setup
+        # self.thread_sensor = SerialThread(self.port_sensor)
+        # self.thread_sensor.progress_update.connect(self.update_progress)
+        # self.thread_sensor.start()
 
 
         # self.port_pump = '/dev/ttyUSB1' # Make sure this matches your setup
@@ -88,35 +94,158 @@ class MainWindow(QDialog):
         # self.thread_pump.progress_update.connect(self.update_progress)
         # self.thread_pump.start()
 
-        self.port_RFID = '/dev/ttyUSB2' # 설정과 일치하는지 확인해야 함
-        self.thread_RFID = SerialThread(self.port_RFID)
-        self.thread_RFID.progress_update.connect(self.handle_rfid_reading)
+        self.port_RFID = '/dev/ttyACM0' # 설정과 일치하는지 확인해야 함
+        self.thread_RFID = RfidThread(self.port_RFID)
+        self.thread_RFID.rfid_detected.connect(self.handle_rfid_reading)
         self.thread_RFID.start()
 
-    def handle_rfid_reading(self, data):
-        # 데이터가 RFID 태그 문자열을 포함하는 리스트라고 가정함
-        if not data:
-            return
+        # 초기 상태 설정
+        self.current_state = self.STATE_IDLE
+        self.update_status(self.STATE_IDLE)
+
+        # RFID 중복 방지 변수
+        self.last_rfid_time = 0
+        self.last_rfid_tag = None
+
+    def update_status(self, state):
+        self.current_state = state
+        status_label = self.findChild(QLabel, "status")
+        if status_label:
+            status_label.setText(state)
+            
+            # 상태에 따른 스타일 변경 (선택 사항)
+            if state == self.STATE_IDLE:
+                status_label.setStyleSheet("color: black;")
+            elif state == self.STATE_MAKING:
+                status_label.setStyleSheet("color: blue; font-weight: bold;")
+            elif state == self.STATE_DONE:
+                status_label.setStyleSheet("color: green; font-weight: bold;")
+
+    def handle_rfid_reading(self, rfid_tag):
+        import time
+        current_time = time.time()
         
-        rfid_tag = str(data[0]).strip()
+        # 2초 내에 같은 태그가 들어오면 무시 (Debounce)
+        if rfid_tag == self.last_rfid_tag and (current_time - self.last_rfid_time) < 2.0:
+            return
+
+        self.last_rfid_tag = rfid_tag
+        self.last_rfid_time = current_time
+
         print(f"RFID Detected: {rfid_tag}")
         
         # 이전 결과를 지움
         self.list_model.clear()
         
-        # 데이터베이스를 조회함
-        # TODO: 실제 스키마에 맞게 테이블명 'users'와 컬럼 'rfid'를 수정해야 함
-        query = "SELECT * FROM users WHERE rfid = %s"
-        result = self.db_manager.fetch_query(query, (rfid_tag,))
+        # 1. 상태 확인 (칵테일이 선택되었는지)
+        # STATE_WAITING_TAG 상태에서만 RFID 인식 처리
+        if self.current_state != self.STATE_WAITING_TAG:
+             # 대기 중이거나 이미 결제 진행 중이면 무시
+             return
+
+        # 2. 상태 변경: 결제 대기 (이 상태에서는 추가 태그 인식 안됨)
+        self.update_status(self.STATE_PAYMENT_WAIT)
+
+        # 3. 사용자 조회
+        query_user = "SELECT * FROM users WHERE rfid_uid = %s"
+        users = self.db_manager.fetch_query(query_user, (rfid_tag,))
         
-        if result:
-            for row in result:
-                # 찾은 사용자의 모든 컬럼을 표시함
-                display_text = " | ".join([f"{k}: {v}" for k, v in row.items()])
-                item = QStandardItem(display_text)
-                self.list_model.appendRow(item)
-        else:
+        if not users:
             self.list_model.appendRow(QStandardItem("User not found"))
+            QMessageBox.warning(self, '오류', '등록되지 않은 사용자입니다.')
+            self.reset_to_idle() # 등록되지 않은 경우 초기화
+            return
+
+        user = users[0]
+        user_balance = user.get('point_balance', 0) 
+        user_name = user.get('user_name', 'Unknown')
+
+        # 'label_5' 업데이트 (사용자 이름 및 잔액 표시)
+        user_info_label = self.findChild(QLabel, "label_5")
+        if user_info_label:
+            user_info_label.setText(f"{user_name}님 | 잔액: {user_balance}원")
+
+        # 4. 선택된 칵테일 가격 확인
+        price_text = self.selected_price_label.text()
+        if not price_text or "원" not in price_text:
+             self.reset_to_idle()
+             return
+
+        try:
+            cocktail_price = int(price_text.replace("원", "").strip())
+        except ValueError:
+             self.list_model.appendRow(QStandardItem("Invalid price format."))
+             self.reset_to_idle()
+             return
+
+        # 5. 결제 확인 팝업
+        reply = QMessageBox.question(self, '결제 확인', 
+                                     f"{user_name}님, {cocktail_price}원을 결제하시겠습니까?\n현재 잔액: {user_balance}원",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, 
+                                     QMessageBox.StandardButton.No)
+
+        if reply == QMessageBox.StandardButton.Yes:
+            # 6. 잔액 확인 및 결제
+            if user_balance >= cocktail_price:
+                new_balance = user_balance - cocktail_price
+                
+                # DB 업데이트
+                update_query = "UPDATE users SET point_balance = %s WHERE rfid_uid = %s"
+                self.db_manager.execute_query(update_query, (new_balance, rfid_tag))
+                
+                # UI 업데이트
+                self.list_model.appendRow(QStandardItem(f"Payment Success!"))
+                self.list_model.appendRow(QStandardItem(f"User: {user_name}"))
+                self.list_model.appendRow(QStandardItem(f"Paid: {cocktail_price}원"))
+                self.list_model.appendRow(QStandardItem(f"Remaining Balance: {new_balance}원"))
+                
+                # 'label_5' 업데이트 (결제 후 잔액)
+                if user_info_label:
+                    user_info_label.setText(f"{user_name}님 | 잔액: {new_balance}원")
+                
+                # 결제 성공 팝업
+                QMessageBox.information(self, '결제 완료', f"결제가 완료되었습니다.\n남은 잔액: {new_balance}원")
+
+                # 제조 시작
+                self.start_making_process()
+            else:
+                self.list_model.appendRow(QStandardItem("Insufficient Funds!"))
+                QMessageBox.warning(self, '잔액 부족', f"잔액이 부족합니다.\n현재 잔액: {user_balance}원\n필요 금액: {cocktail_price}원")
+                self.reset_to_idle() # 잔액 부족 시 초기화
+        else:
+            self.list_model.appendRow(QStandardItem("Payment Cancelled"))
+            self.reset_to_idle() # 취소 시 초기화
+
+    def start_making_process(self):
+        """칵테일 제조 프로세스 시뮬레이션"""
+        self.update_status(self.STATE_MAKING)
+        
+        # 실제 펌프 제어 로직이 들어갈 곳
+        # 여기서는 간단히 타이머를 사용하여 제조 완료를 시뮬레이션함
+        # QTimer.singleShot을 사용하여 UI 스레드를 차단하지 않음
+        from PyQt6.QtCore import QTimer
+        QTimer.singleShot(3000, self.finish_making_process) # 3초 후 완료
+
+    def finish_making_process(self):
+        self.update_status(self.STATE_DONE)
+        QMessageBox.information(self, '제조 완료', '칵테일 제조가 완료되었습니다! 맛있게 드세요.')
+        
+        # 잠시 후 대기 상태로 복귀
+        from PyQt6.QtCore import QTimer
+        QTimer.singleShot(2000, self.reset_to_idle)
+
+    def reset_to_idle(self):
+        self.update_status(self.STATE_IDLE)
+        # 선택된 칵테일 정보 초기화 등 필요 시 추가
+        if self.selected_cocktail_label:
+            self.selected_cocktail_label.setText("-")
+        if self.selected_price_label:
+            self.selected_price_label.setText("-")
+        
+        # label_5 초기화 (원래 문구로 복구)
+        user_info_label = self.findChild(QLabel, "label_5")
+        if user_info_label:
+            user_info_label.setText("카드를 터치하여 결제를 진행하세요")
 
     def check_admin_access(self, index):
         # 관리자 탭(인덱스 1)으로 이동하려는 경우
@@ -206,6 +335,9 @@ class MainWindow(QDialog):
             # "5000원" 형식에서 숫자만 추출하거나 그대로 사용
             # 요구사항: "클릭한 버튼의 해당되는 가격으로 변할 수 있게"
             self.selected_price_label.setText(price_label.text())
+            
+        # 상태 업데이트: 태그 대기
+        self.update_status(self.STATE_WAITING_TAG)
 
     def update_progress(self, values):
         # 각 프로그레스 바를 업데이트함
