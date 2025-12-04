@@ -5,7 +5,14 @@ jira link : https://netoda.atlassian.net/jira/software/projects/WB/boards/34?atl
 
 ## Addinedu ROS2 11th     
 ### 1. 프로젝트 소개
-Arduino와 MySQL Database, PyQt를 이용, 여러 재료를 혼합하여 자동으로 칵테일을 만들고 RFID를 이용하여 결제 할 수 있는 서비스 개발하고자 하였습니다.
+Arduino와 MySQL Database, PyQt를 이용, 여러 재료를 혼합하여 자동으로 칵테일을 만들고 RFID를 이용하여 결제 할 수 있는 서비스 개발하고자 하였습니다.</br>
+</br>
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+![Python](https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![MySQL](https://img.shields.io/badge/mysql-4479A1.svg?style=for-the-badge&logo=mysql&logoColor=white)
+![Qt](https://img.shields.io/badge/Qt-%23217346.svg?style=for-the-badge&logo=Qt&logoColor=white)
+![Arduino](https://img.shields.io/badge/-Arduino-00979D?style=for-the-badge&logo=Arduino&logoColor=white)
+
 
 ### 2. Summary
 - 기간 : 2025.12.01(월) ~ 2025.12.05(금)
@@ -24,7 +31,4 @@ Arduino와 MySQL Database, PyQt를 이용, 여러 재료를 혼합하여 자동�
   - waterpump 제어
  
 ### 4. Software Requirements
-<img width="631" height="569" alt="image" src="https://github.com/user-attachments/assets/21c0b38c-2611-4e67-b319-5aff5846b9b2" />
-
-    
-
+<img width="2166" height="2284" alt="제목 없는 디자인 (1)" src="https://github.com/user-attachments/assets/a1cca404-bebc-46b9-a96d-756b38c281ab" />
