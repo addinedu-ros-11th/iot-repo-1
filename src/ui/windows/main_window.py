@@ -18,7 +18,7 @@ class MainWindow(QDialog):
         super().__init__()
         self.db_manager = DatabaseManager(host="wbb.c70a028eoyhm.ap-northeast-2.rds.amazonaws.com",
                                          user="sm",
-                                         password="123",
+                                         password="----",
                                          database="wbb")
         self.db_manager.connect()
         # UI 파일을 로드함
