@@ -47,5 +47,9 @@ https://netoda.atlassian.net/wiki/x/AQAMAQ
  
 ### 5. 프로그램 실행
  - python ./src/main.py
+
+### 6. Database ERD
+
+blob:https://netoda.atlassian.net/08b647e8-c2b6-409e-9de3-257edc38fb57#media-blob-url=true&id=41d8224b-76cb-4b72-8048-6d0a0b563bc6&contextId=17563649&collection=contentId-17563649
  
 
