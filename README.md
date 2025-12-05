@@ -50,6 +50,6 @@ https://netoda.atlassian.net/wiki/x/AQAMAQ
 
 ### 6. Database ERD
 
-blob:https://netoda.atlassian.net/08b647e8-c2b6-409e-9de3-257edc38fb57#media-blob-url=true&id=41d8224b-76cb-4b72-8048-6d0a0b563bc6&contextId=17563649&collection=contentId-17563649
+<img width="887" height="292" alt="Image" src="https://github.com/user-attachments/assets/534beb2a-6e7f-4b55-8a4c-3d226a671cd1" />
  
 
